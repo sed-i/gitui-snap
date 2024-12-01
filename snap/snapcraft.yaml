@@ -1,0 +1,105 @@
+name: gitui
+base: core24
+license: MIT
+source-code: https://github.com/sed-i/gitui-snap
+issues: https://github.com/sed-i/gitui-snap/issues
+adopt-info: gitui  # Note: snap version is set from tag
+
+title: GitUI
+icon: logo.png
+website: https://github.com/extrawurst/gitui
+summary: Terminal UI for git
+description: |
+  GitUI provides you with the comfort of a git GUI but right in your terminal.
+
+confinement: strict
+grade: stable
+
+platforms:
+  amd64:
+  arm64:
+    build-on: [amd64, arm64]
+    build-for: [arm64]
+  armhf:
+    build-on: [amd64, armhf]
+    build-for: [armhf]
+  riscv64:
+    build-on: [amd64, riscv64]
+    build-for: [riscv64]
+  s390x:
+    build-on: [amd64, s390x]
+    build-for: [s390x]
+
+plugs:
+  dot-config:
+    interface: personal-files
+    read:
+      - $HOME/.config/gitui
+      - $HOME/.gitconfig
+
+apps:
+  gitui:
+    command: gitui
+    plugs:
+      - network
+      - home
+      - dot-config
+
+parts:
+  gitui:
+    plugin: rust
+    source: https://github.com/extrawurst/gitui.git
+    override-pull: |
+      craftctl default
+      craftctl set version="$(git describe --tags --always)"
+    build-packages:
+      - cmake
+      - libssl-dev
+      - build-essential
+      - linux-libc-dev
+      - on amd64 to arm64:
+        - gcc-aarch64-linux-gnu
+        - linux-libc-dev-arm64-cross
+        - libc6-dev-arm64-cross
+      - on amd64 to armhf:
+        - gcc-arm-linux-gnueabihf
+        - linux-libc-dev-armhf-cross
+        - libc6-dev-armhf-cross
+      - on amd64 to riscv64:
+        - gcc-riscv64-linux-gnu
+        - linux-libc-dev-riscv64-cross
+        - libc6-dev-riscv64-cross
+      - on amd64 to s390x:
+        - gcc-s390x-linux-gnu
+        - linux-libc-dev-s390x-cross
+        - libc6-dev-s390x-cross
+    build-environment:
+      # Must statically link, otherwise cross-compiled binaries end up being
+      # dynamically linked to /snap/core24/current/lib64/ld-linux-x86-64.so.2
+      - RUSTFLAGS: "-C target-feature=+crt-static"
+      # https://doc.rust-lang.org/nightly/rustc/platform-support.html
+      # https://forum.snapcraft.io/t/platforms-and-architectures/36758
+      - to amd64:
+        - target: x86_64-unknown-linux-gnu
+      - on amd64 to arm64:
+        - CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+        - target: aarch64-unknown-linux-gnu
+      - on amd64 to armhf:
+        - CARGO_TARGET_ARMV7_UNKNOWN_LINUX_GNUEABIHF_LINKER: arm-linux-gnueabihf-gcc
+        - target: armv7-unknown-linux-gnueabihf
+      - on amd64 to riscv64:
+        - CARGO_TARGET_RISCV64GC_UNKNOWN_LINUX_GNU_LINKER: riscv64-linux-gnu-gcc
+        - target: riscv64gc-unknown-linux-gnu
+      - on amd64 to s390x:
+        - CARGO_TARGET_S390X_UNKNOWN_LINUX_GNU_LINKER: s390x-linux-gnu-gcc
+        - target: s390x-unknown-linux-gnu
+        
+    build-snaps: [rustup]
+    override-build: |
+      rustup install stable
+      rustup target add $target
+      echo "targets = ['$target']" >> rust-toolchain.toml
+      cargo build --release --locked --target=$target
+
+      # Ref: https://github.com/canonical/snapcraft/blob/8faa6d54eef1f4437c7e10337ed8fdcc8dc51cbc/snapcraft_legacy/plugins/v2/rust.py#L194
+      find ./target/$target/release -maxdepth 1 -executable -type f -name "gitui*" -exec install -Dvm755 {} "${SNAPCRAFT_PART_INSTALL}" ';'
