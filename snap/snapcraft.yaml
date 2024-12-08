@@ -31,10 +31,13 @@ platforms:
     build-for: [s390x]
 
 plugs:
-  dot-config:
+  dot-config-gitui:
     interface: personal-files
     read:
       - $HOME/.config/gitui
+  dot-gitconfig:
+    interface: personal-files
+    read:
       - $HOME/.gitconfig
 
 apps:
