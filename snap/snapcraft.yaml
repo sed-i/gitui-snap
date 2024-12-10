@@ -46,7 +46,8 @@ apps:
     plugs:
       - network
       - home
-      - dot-config
+      - dot-config-gitui
+      - dot-gitconfig
 
 parts:
   gitui:
