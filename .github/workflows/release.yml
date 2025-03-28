@@ -51,7 +51,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/checkout@v4
       with:
-        repository: extrawurst/gitui
+        repository: gitui-org/gitui
         path: gitui
         fetch-depth: 0
         fetch-tags: true
@@ -141,7 +141,7 @@ jobs:
       # Check if this workflow's interval happened to miss out on a previous commit tagged with a semver
       id: betaversion
       run: |
-        LATEST_TAG=$(curl -sL https://api.github.com/repos/extrawurst/gitui/releases | jq -r '.[].tag_name' | grep -E "$SEMVER" | sort -rV | head -1)
+        LATEST_TAG=$(curl -sL https://api.github.com/repos/gitui-org/gitui/releases | jq -r '.[].tag_name' | grep -E "$SEMVER" | sort -rV | head -1)
         JSON=$(curl -sL -H "Snap-Device-Series: 16" "https://api.snapcraft.io/v2/snaps/info/gitui?fields=version&architecture=${{ matrix.platform }}")
         BETA=$(echo "$JSON" | jq -r '."channel-map"[] | select(.channel.track == "latest" and .channel.risk == "beta") | .version')
         echo "latest=$LATEST_TAG" >> $GITHUB_OUTPUT
