@@ -7,7 +7,7 @@ adopt-info: gitui  # Note: snap version is set from tag
 
 title: GitUI
 icon: logo.png
-website: https://github.com/extrawurst/gitui
+website: https://github.com/gitui-org/gitui
 summary: Terminal UI for git
 description: |
   GitUI provides you with the comfort of a git GUI but right in your terminal.
@@ -52,7 +52,7 @@ apps:
 parts:
   gitui:
     plugin: rust
-    source: https://github.com/extrawurst/gitui.git
+    source: https://github.com/gitui-org/gitui.git
     override-pull: |
       craftctl default
       craftctl set version="$(git describe --tags --always)"
